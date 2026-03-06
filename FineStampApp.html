@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8">
     <title>FineStamp</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <!-- เพิ่ม viewport-fit=cover เพื่อให้เต็มจอจนถึงขอบ (Notch) ของ iPhone -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <base target="_top">
 
     <link rel="manifest" href="./FineStampApp_manifest.json">
@@ -17,18 +18,23 @@
 
     <style>
         body, html {
-            margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #f1f5f9;
-        }
-        iframe {
-            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            width: 100%; height: 100%;
-            border: none; margin: 0; padding: 0;
-            overflow: hidden; z-index: 99;
+            margin: 0; padding: 0; height: 100%; width: 100%;
+            overflow: hidden; background-color: #f1f5f9;
+            /* ป้องกันการ Scroll เด้ง (Bouncing) บน iOS */
+            overscroll-behavior: none; 
         }
         
-        /* สไตล์สำหรับ Splash Screen บังหน้าจอขาวระหว่างเชื่อมต่อ Google Script */
+        iframe {
+            /* เปลี่ยนจาก fixed เป็น absolute ช่วยแก้บั๊กบน Webview/PWA ของ iOS ได้ดีกว่า */
+            position: absolute; 
+            top: 0; left: 0; bottom: 0; right: 0;
+            width: 100%; height: 100%;
+            border: none; margin: 0; padding: 0;
+            overflow: hidden; z-index: 10;
+        }
+        
         #splashScreen {
-            position: fixed;
+            position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
             z-index: 999999;
@@ -36,7 +42,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.8s ease-in-out;
+            /* ปรับ transition ให้สมูทขึ้น */
+            transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
             color: white;
             font-family: 'Prompt', sans-serif;
         }
@@ -81,36 +88,62 @@
 </head>
 <body>
 
-    <!-- Splash Screen: แสดงทันทีที่เปิดแอพขึ้นมา (ก่อนที่ iframe ของ Google จะโหลดเสร็จ) -->
     <div id="splashScreen">
         <div class="logo-container">
-            <img src="https://img2.pic.in.th/FineStamp---Logo-bg-remove.png" alt="FineStamp Logo">
+            <img src="https://img2.pic.in.th/FineStamp---Logo-bg-remove.png" alt="FineStamp Logo" onerror="this.src=''">
         </div>
         <h1 style="font-size: 24px; margin:0; font-weight: bold; letter-spacing: 1px;">FineStamp</h1>
-        <p style="font-size: 14px; opacity: 0.8; margin-top: 5px;">กำลังเตรียมระบบ...</p>
+        <p style="font-size: 14px; opacity: 0.8; margin-top: 5px;">กำลังเชื่อมต่อระบบ...</p>
         <div class="spinner"></div>
     </div>
 
-    <!-- Iframe ของ Google Apps Script พร้อมใส่ Event onload -->
+    <!-- นำ onload ออกจาก iframe เพื่อใช้ Script ควบคุมแทน -->
     <iframe 
+        id="gasIframe"
         src="https://script.google.com/macros/s/AKfycbyywqSixglUsUJ2zO_M6lET-_KbRkdu8F-UECgZZaVkywCLd-TOfmAq-Hj13J1w51vr/exec"
         allow="geolocation; microphone; camera"
-        onload="hideSplashScreen()"
     ></iframe>
 
     <script>
-        // ฟังก์ชันสั่งซ่อน Splash Screen หลังจาก Iframe โหลดเสร็จสมบูรณ์
+        // จดจำเวลาเริ่มเปิด App
+        const appStartTime = Date.now();
+        let isSplashHidden = false;
+
         function hideSplashScreen() {
+            if (isSplashHidden) return;
+            isSplashHidden = true;
+            
             const splash = document.getElementById('splashScreen');
-            // หน่วงเวลาอีกนิดนึงให้การวาดหน้า UI ของ Google script เสร็จชัวร์ๆ
+            
+            // ตรวจสอบว่า Splash Screen โชว์มาแล้วอย่างน้อย 2 วินาทีหรือไม่ (เพื่อความสวยงาม ไม่กระพริบ)
+            const elapsedTime = Date.now() - appStartTime;
+            const minDisplayTime = 2000; 
+            const remainingWait = Math.max(0, minDisplayTime - elapsedTime);
+
             setTimeout(() => {
                 splash.style.opacity = '0';
-                // ลบออกจาก DOM หลังจาก fade out เสร็จ
+                splash.style.visibility = 'hidden';
                 setTimeout(() => {
                     splash.style.display = 'none';
                 }, 800);
-            }, 500);
+            }, remainingWait);
         }
+
+        // วิธีที่ 1: ดักจับจาก Event Onload (ดีเลย์เผื่อ GAS Redirect)
+        document.getElementById('gasIframe').addEventListener('load', function() {
+            // เมื่อ iframe สั่ง load ให้รออีกนิดเพื่อให้แน่ใจว่าโหลด DOM เสร็จจริงๆ
+            setTimeout(hideSplashScreen, 1500); 
+        });
+
+        // วิธีที่ 2 (Advance): ดักจับข้อความจากภายใน GAS (ทำงานประสานกัน 100%)
+        window.addEventListener('message', function(event) {
+            if (event.data === 'FINESTAMP_READY') {
+                hideSplashScreen();
+            }
+        });
+
+        // วิธีที่ 3 (Fallback): ป้องกันเคสเน็ตช้ามากๆ หรือโหลดไม่ขึ้น จะซ่อนอัติโนมัติใน 8 วินาที
+        setTimeout(hideSplashScreen, 8000);
     </script>
 
 </body>
