@@ -10,12 +10,12 @@
     <link rel="manifest" href="./FineStampApp_manifest.json">
 
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- แนะนำให้ใช้ black-translucent ต่อไป เพื่อให้ได้ UI ที่ดูเป็น Native App แต่เราจะไปจัดการขอบด้วย CSS แทน -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FineStamp">
     <link rel="apple-touch-icon" href="https://img2.pic.in.th/FineStamp-logo-for-ios.png">
 
-    <meta name="theme-color" content="#f1f5f9"> <!-- เปลี่ยนให้ตรงกับสีพื้นหลัง Header ของแอพเพื่อให้ Status bar เนียนตาขึ้น -->
+    <!-- สีพื้นหลังนี้จะไปปรากฏตรงแถบ Status bar ด้านบน -->
+    <meta name="theme-color" content="#f1f5f9"> 
 
     <style>
         body, html {
@@ -24,21 +24,22 @@
             height: 100%; 
             width: 100%;
             overflow: hidden; 
-            /* สีพื้นหลังนี้จะไปปรากฏอยู่หลัง Status Bar (เวลา, แบต) บน iOS */
             background-color: #f1f5f9;
-            /* ป้องกันการ Scroll เด้ง (Bouncing) บน iOS */
             overscroll-behavior: none; 
         }
         
         iframe {
+            display: block; /* บังคับให้ iframe แสดงผลเป็น Block ป้องกันช่องว่างแปลกๆ */
             position: absolute; 
-            /* จุดสำคัญ: ใช้ env(safe-area-inset-...) เพื่อให้ iOS คำนวณรอยบากและขอบจออัตโนมัติ */
+            
+            /* เว้นระยะด้านบนและซ้ายตามรอยบากของ iOS (ถ้าเป็น Android หรือไม่มีรอยบาก ค่าจะเป็น 0px) */
             top: env(safe-area-inset-top, 0px); 
             left: env(safe-area-inset-left, 0px); 
-            bottom: env(safe-area-inset-bottom, 0px); 
-            right: env(safe-area-inset-right, 0px);
             
-            /* เอา width: 100% และ height: 100% ออก เพราะเรา fix ขอบด้วย top, bottom, left, right แล้ว */
+            /* คำนวณความกว้าง/ความสูง ให้เต็ม 100% แล้วหักลบด้วยขอบปลอดภัยของจอ */
+            width: calc(100% - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+            height: calc(100% - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+            
             border: none; 
             margin: 0; 
             padding: 0;
@@ -58,8 +59,9 @@
             transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
             color: white;
             font-family: 'Prompt', sans-serif;
-            /* ขยับ Splash screen เล็กน้อยเพื่อไม่ให้โลโก้ชนขอบกล้อง */
+            /* ป้องกันเนื้อหาใน Splash screen ชนรอยบาก */
             padding-top: env(safe-area-inset-top, 0px);
+            padding-bottom: env(safe-area-inset-bottom, 0px);
             box-sizing: border-box;
         }
         
