@@ -1,10 +1,13 @@
 {
-  "name": "FineStamp Lab",
+  "name": "FineStamp - ระบบบันทึกเวลาปฏิบัติงาน",
   "short_name": "FineStamp",
+  "description": "ระบบบันทึกเวลาปฏิบัติงานและจัดการตารางเวร สำหรับบุคลากรห้องปฏิบัติการทางการแพทย์",
   "start_url": "./FineStampApp.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0d9488",
   "theme_color": "#0d9488",
+  "categories": ["productivity", "medical"],
   "icons": [
     {
       "src": "https://img2.pic.in.th/FineStamp---Logo-bg-remove.png",
