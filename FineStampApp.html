@@ -3,36 +3,179 @@
 <head>
     <meta charset="utf-8">
     <title>FineStamp</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, user-scalable=no, viewport-fit=cover">
     <base target="_top">
 
     <link rel="manifest" href="./FineStampApp_manifest.json">
 
+    <!-- iOS PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FineStamp">
     <link rel="apple-touch-icon" href="https://img2.pic.in.th/FineStamp-logo-for-ios.png">
 
+    <!-- Theme Color -->
     <meta name="theme-color" content="#0d9488">
+    <meta name="msapplication-navbutton-color" content="#0d9488">
 
     <style>
-        body, html {
-            margin: 0; padding: 0; height: 100%; overflow: hidden; background-color: #f1f5f9;
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@400;600;700&display=swap');
+        
+        :root {
+            --sat: env(safe-area-inset-top, 0px);
+            --sab: env(safe-area-inset-bottom, 0px);
         }
-        iframe {
-            position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+
+        body, html {
+            margin: 0; padding: 0;
             width: 100%; height: 100%;
+            height: 100dvh;
+            overflow: hidden; 
+            background-color: #0d9488;
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* สไตล์หน้าจอ Loading สำหรับ iOS */
+        #loader-container {
+            position: fixed; 
+            top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: linear-gradient(180deg, #0f766e 0%, #0d9488 100%);
+            z-index: 1000;
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.5s;
+            padding-top: var(--sat);
+            padding-bottom: var(--sab);
+            box-sizing: border-box;
+        }
+        
+        .loader-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 28px;
+            padding: 32px 28px;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            max-width: 260px;
+            width: 80%;
+        }
+
+        .loader-logo {
+            width: 84px; height: 84px; margin-bottom: 20px;
+            border-radius: 20px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+            animation: pulse-logo 2.2s infinite ease-in-out;
+            background: white;
+            padding: 6px;
+        }
+
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3.5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.85s linear infinite;
+            margin-top: 4px;
+        }
+
+        .title-text { 
+            color: #ffffff; 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin: 14px 0 2px 0; 
+            letter-spacing: -0.3px; 
+        }
+
+        .subtitle-text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 11px;
+            font-weight: 500;
+            margin-bottom: 14px;
+            letter-spacing: 0.2px;
+        }
+
+        .version-badge { 
+            color: #ffffff; 
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px; 
+            font-weight: 600; 
+            letter-spacing: 0.5px; 
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulse-logo {
+            0%, 100% { transform: scale(1); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2); }
+            50% { transform: scale(1.06); box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3); }
+        }
+
+        /* Iframe iOS Fullscreen & Smooth momentum scroll */
+        iframe {
+            position: fixed; 
+            top: 0; left: 0; bottom: 0; right: 0;
+            width: 100%; height: 100%;
+            height: 100dvh;
             border: none; margin: 0; padding: 0;
-            overflow: hidden; z-index: 999999;
+            overflow: auto; 
+            -webkit-overflow-scrolling: touch;
+            z-index: 20;
+            opacity: 0; 
+            transition: opacity 0.4s ease-in;
+            background-color: #f1f5f9;
         }
     </style>
 </head>
 <body>
 
+    <!-- Loading Screen สไตล์ iOS Glassmorphism -->
+    <div id="loader-container">
+        <div class="loader-card">
+            <img src="https://img2.pic.in.th/FineStamp---Logo-bg-remove.png" alt="FineStamp Logo" class="loader-logo">
+            <div class="spinner"></div>
+            <h1 class="title-text">FineStamp</h1>
+            <p class="subtitle-text">Clinical Pathology & Med Tech</p>
+            <span class="version-badge">v1.4.0 Pro iOS</span>
+        </div>
+    </div>
+
+    <!-- Iframe ดึงเนื้อหาเว็บแอพ Google Apps Script -->
     <iframe 
+        id="app-frame"
         src="https://script.google.com/macros/s/AKfycbyywqSixglUsUJ2zO_M6lET-_KbRkdu8F-UECgZZaVkywCLd-TOfmAq-Hj13J1w51vr/exec"
-        allow="geolocation; microphone; camera"
+        allow="geolocation; microphone; camera; fullscreen"
+        onload="hideLoader()"
     ></iframe>
 
+    <script>
+        function hideLoader() {
+            const loader = document.getElementById('loader-container');
+            const frame = document.getElementById('app-frame');
+            
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                frame.style.opacity = '1';
+                
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                }, 500);
+            }, 300);
+        }
+
+        // Fallback: หากสัญญาณโหลดช้า ซ่อน loader อัตโนมัติหลัง 6 วินาที
+        setTimeout(() => {
+            const loader = document.getElementById('loader-container');
+            if (loader && loader.style.display !== 'none') {
+                hideLoader();
+            }
+        }, 6000);
+    </script>
 </body>
 </html>
